@@ -1,0 +1,51 @@
+#!/bin/sh
+
+if [ $# -ne 1 ] || ! [ $1 -eq $1 ] 2>/dev/null; then
+    printf "Useage: metronome [bpm]\n"
+    exit 0
+fi
+
+# Print a spinning cursor
+cursor() {
+    if [ -z $CURSOR ]; then return 0 ; fi
+    printf '   '
+    printf '\033[1m'
+    case $CURSOR in
+        1)
+            printf  '-'
+            CURSOR=2
+        ;;
+
+        2)
+            printf  '\\'
+            CURSOR=3
+        ;;
+
+        3)
+            printf '|'
+            CURSOR=4
+        ;;
+
+        4)
+            printf '/'
+            CURSOR=1
+        ;;
+    esac
+    printf  '  '
+    printf '\033[0m'
+    printf '\r'
+}
+
+DURATION_MS=$(echo "scale = 4; 60 / $1" | bc)
+CURSOR=1
+
+while [ 1 ]
+do
+    cursor
+    aplay audio/tick.wav >/dev/null 2>/dev/null &
+    sleep $DURATION_MS
+    cursor
+    aplay audio/tick2.wav > /dev/null 2>/dev/null &
+    sleep $DURATION_MS
+done
+
